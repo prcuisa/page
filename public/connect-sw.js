@@ -1,0 +1,2 @@
+self.addEventListener('push',event=>{let message={};try{message=event.data.json()}catch{}event.waitUntil(self.registration.showNotification('PRCUISA Connect',{body:typeof message.body==='string'?message.body.slice(0,200):'Ada kabar baru. Buka Hub untuk melihat detail.',tag:'prcuisa-connect',data:{path:'/connect'}}))});
+self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil(clients.openWindow('/connect'))});

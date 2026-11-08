@@ -1,0 +1,20 @@
+services:
+  waha:
+    # Choose and pin a reviewed WAHA Core release/digest for this VPS architecture.
+    image: ${WAHA_IMAGE:?Set a pinned devlikeapro/waha image}
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      WAHA_API_KEY: ${WAHA_API_KEY:?required}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?required}
+      WHATSAPP_SWAGGER_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?required}
+    volumes:
+      - waha_sessions:/app/.sessions
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+volumes:
+  waha_sessions:

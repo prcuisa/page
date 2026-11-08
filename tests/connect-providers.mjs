@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {seal,open,challengeHash,equal,sendProvider} from '../src/features/connect/server/providers.mjs';
+import {publicIPv4,destination} from '../src/features/connect/server/outbound.mjs';
+process.env.CONNECT_ENCRYPTION_KEY='ab'.repeat(32);
+const v=seal('private-recipient');assert.equal(open(v),'private-recipient');assert.notEqual(v,seal('private-recipient'));assert.throws(()=>open(v.replace(/.$/,'!')));
+assert.notEqual(challengeHash('a','123456'),challengeHash('b','123456'));assert.ok(equal('valid','valid'));assert.ok(!equal('valid','bad'));
+for(const ip of ['127.0.0.1','10.1.2.3','169.254.169.254','172.16.0.1','192.168.1.1','100.64.0.1','0.0.0.0','::1','198.18.0.1'])assert.equal(publicIPv4(ip),false);assert.equal(publicIPv4('8.8.8.8'),true);
+for(const url of ['http://example.com','https://127.0.0.1','https://[::1]','https://user:pass@example.com','https://example.com:8443'])await assert.rejects(()=>destination(url));
+process.env.TELEGRAM_BOT_TOKEN='test';globalThis.fetch=async()=>({ok:false,status:429,json:async()=>({parameters:{retry_after:120}}),headers:new Headers()});let r=await sendProvider('telegram','123','test','id');assert.equal(r.retryable,true);assert.equal(r.retryAfter,120);
+globalThis.fetch=async()=>({ok:false,status:403,json:async()=>({}),headers:new Headers()});r=await sendProvider('telegram','123','test','id');assert.equal(r.retryable,false);
+globalThis.fetch=async()=>({ok:true,status:200,json:async()=>({ok:true,result:{message_id:99}}),headers:new Headers()});r=await sendProvider('telegram','123','test','id');assert.equal(r.accepted,true);assert.equal(r.providerMessageId,'99');console.log('PASS AES-GCM, challenge binding, SSRF URL/IP guards, retry classification and provider ACK. No real messages sent.');

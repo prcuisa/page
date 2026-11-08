@@ -1,0 +1,29 @@
+services:
+  connect-worker:
+    build:
+      context: ../..
+      dockerfile: workers/connect-worker/Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?required}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?required}
+      CONNECT_ENCRYPTION_KEY: ${CONNECT_ENCRYPTION_KEY:?required}
+      CONNECT_APP_URL: ${CONNECT_APP_URL:-https://app.prcuisa.com}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      WAHA_URL: ${WAHA_URL:-}
+      WAHA_API_KEY: ${WAHA_API_KEY:-}
+      WAHA_SESSION: ${WAHA_SESSION:-default}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      CONNECT_EMAIL_FROM: ${CONNECT_EMAIL_FROM:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

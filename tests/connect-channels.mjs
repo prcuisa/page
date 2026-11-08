@@ -1,0 +1,32 @@
+import { PGlite } from '@electric-sql/pglite';
+import { readFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import assert from 'node:assert/strict';
+const db=new PGlite();
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,service_role;grant execute on function auth.uid() to authenticated,service_role;`);
+await db.exec(await readFile(new URL('../database/schema.sql',import.meta.url),'utf8'));
+const a=randomUUID(),b=randomUUID();
+await db.query(`insert into auth.users values($1,'a@test.test',now()),($2,'b@test.test',now())`,[a,b]);
+const as=async u=>{await db.exec('reset role;set role authenticated');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[u]);};
+await as(a);
+const w=(await db.query(`insert into public.workspaces(name,owner_id) values('Toko Uji',$1) returning id`,[a])).rows[0].id;
+const call=async(action,p={})=>(await db.query('select public.connect_action($1,$2,$3::jsonb) v',[w,action,JSON.stringify(p)])).rows[0].v;
+
+
+const service=async()=>db.exec('reset role;set role service_role');
+const start=async(id,hash)=>db.query('select public.connect_start($1,$2,$3,$4,$5,$6,$7)',[a,w,'telegram',id,hash,'ciphertext','lookup']);
+const c=randomUUID(),hash='a'.repeat(64);
+await assert.rejects(()=>start(c,hash));await service();await start(c,hash);
+assert.equal((await db.query('select public.connect_verify($1,$2,$3,$4,$5) v',[c,a,'b'.repeat(64),'ciphertext','lookup'])).rows[0].v,false);
+assert.equal((await db.query('select public.connect_verify($1,$2,$3,$4,$5) v',[c,a,hash,'ciphertext','lookup'])).rows[0].v,true);
+assert.equal((await db.query('select public.connect_verify($1,$2,$3,$4,$5) v',[c,a,hash,'ciphertext','lookup'])).rows[0].v,false);
+await as(b);await assert.rejects(()=>db.query('select public.connect_connections_read($1)',[w]));
+await as(a);await db.query('select public.connect_channel_test($1,$2)',[w,c]);await service();
+const job=(await db.query('select public.connect_claim() v')).rows[0].v;assert.equal(job.channel,'telegram');assert.equal((await db.query('select public.connect_claim() v')).rows[0].v,null);
+await db.query('select public.connect_finish($1,$2,false,true,null,$3,0)',[job.id,job.lease,'NETWORK_ERROR']);
+await db.exec('reset role');let row=(await db.query('select * from public.connect_deliveries where id=$1',[job.id])).rows[0];assert.equal(row.status,'pending');assert.equal(row.attempt_count,1);
+await db.query("update public.connect_deliveries set next_attempt_at=now() where id=$1",[job.id]);await service();const retry=(await db.query('select public.connect_claim() v')).rows[0].v;assert.equal(retry.id,job.id);assert.notEqual(retry.lease,job.lease);
+await db.query('select public.connect_finish($1,$2,true,false,$3,null,0)',[retry.id,retry.lease,'provider-1']);await db.query('select public.connect_finish($1,$2,true,false,$3,null,0)',[retry.id,retry.lease,'provider-1']);
+await db.exec('reset role');assert.equal((await db.query("select count(*)::int n from public.usage_events where app_id='connect'")).rows[0].n,1);
+await as(a);await db.query('select public.connect_disconnect($1,$2)',[w,c]);await service();assert.equal((await db.query('select public.connect_pending($1) v',[hash])).rows[0].v,null);
+console.log('PASS channel RPC isolation, one-time verification, wrong-code handling, queue leases, retry identity, ACK idempotency, usage deduplication and disconnect.');await db.close();

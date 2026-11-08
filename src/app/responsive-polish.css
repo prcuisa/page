@@ -1,0 +1,136 @@
+/* Shared viewport geometry. Keep modal placement independent of tool layouts. */
+:root { --page-gutter: clamp(20px, 3vw, 40px); --modal-gap: 16px; }
+dialog.entry-dialog,
+dialog.future-dialog,
+dialog.preview-dialog,
+dialog.dashboard-auth-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(520px, calc(100% - 2 * var(--modal-gap)));
+  max-width: calc(100% - 2 * var(--modal-gap));
+  height: fit-content;
+  max-height: calc(100dvh - 2 * var(--modal-gap));
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 16px 64px #18353324;
+}
+dialog.dashboard-auth-dialog { width: min(480px, calc(100% - 2 * var(--modal-gap))); }
+dialog::backdrop { background: #182b2d80; }
+body:has(dialog[open]), body:has(.iq-modal-backdrop) { overflow: hidden; }
+.entry-dialog .sheet-content { min-height: 0; padding: 24px; }
+.sheet-header { gap: 16px; align-items: flex-start; }
+.sheet-header h2 { overflow-wrap: anywhere; }
+.sheet-header button, .auth-close { flex-shrink: 0; }
+.iq-modal-backdrop { align-items: center; padding: var(--modal-gap); }
+.iq-modal { max-height: calc(100dvh - 2 * var(--modal-gap)); padding: 24px; }
+.iq-modal .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.iq-modal .section-head > button { flex-shrink: 0; }
+.iq-review-lines strong, .iq-modal h2 { overflow-wrap: anywhere; }
+textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--teal-dark); outline-offset: 3px; }
+.platform-content { padding-inline: var(--page-gutter); }
+.platform-content > .page-heading { gap: 16px; }
+.platform-content .section-heading { flex-wrap: wrap; row-gap: 12px; }
+.platform-content .section-heading h2 { margin-bottom: 0; }
+.topbar { gap: 16px; }
+.workspace-picker, .workspace-picker > div, .workspace-name { min-width: 0; }
+.workspace-name { overflow-wrap: anywhere; }
+.workspace-name select { max-width: 100%; }
+.workspace-icon, .topbar-right, button > svg { flex-shrink: 0; }
+.tool-search { width: 100%; }
+.tool-search > svg { flex-shrink: 0; }
+.iq-list-controls { align-items: stretch; }
+.iq-app .iq-list-controls > label:focus-within { outline: 2px solid var(--teal); outline-offset: 2px; }
+.iq-field-grid, .qr-field-grid { gap: 20px; }
+.iq-record-panel + *, .iq-settings-summary { margin-top: 20px; }
+.iq-record-list article > div, .connect-channels li > div { min-width: 0; overflow-wrap: anywhere; }
+.iq-record-list article > button { flex-shrink: 0; align-self: center; }
+.connect-channels li { align-items: center; gap: 16px; padding-block: 20px; }
+.connect-channel-actions { align-items: center; }
+.connect-report dl > div { align-items: baseline; flex-wrap: wrap; }
+.connect-report dd { margin: 0; }
+.connect-app form > label:not(.connect-check) input { width: 100%; min-width: 0; }
+.connect-app form > button { margin: 0 8px 12px 0; }
+.connect-app form { margin-top: 20px; }
+.qr-field-grid > label { min-width: 0; }
+.qr-field-grid input, .qr-field-grid select { max-width: 100%; min-width: 0; }
+@media (min-width: 761px) and (max-width: 1100px) {
+  .platform-content { padding-inline: 24px; }
+  .qr-studio-grid { grid-template-columns: minmax(0, 1fr); }
+  .qr-preview-panel, .qr-preview-sticky { position: static; }
+  .qr-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .platform-content { padding: 24px var(--page-gutter) calc(100px + env(safe-area-inset-bottom)); }
+  .topbar { padding-inline: var(--page-gutter); }
+  .platform-content .platform-section { margin-block: 28px; }
+  .platform-content .tool-card { padding: 20px; }
+  .platform-content .tool-card p { font-size: 13px; margin-bottom: 18px; }
+  .iq-pagination { flex-wrap: wrap; align-items: center; }
+  .iq-pagination button { padding-inline: 12px; }
+  .iq-nav { margin-inline: 0; padding-inline: 0; scroll-padding-inline: 0; }
+  .iq-app .section-head { gap: 16px; margin-bottom: 20px; }
+  .connect-channels li { flex-wrap: wrap; }
+  .connect-channel-actions { width: 100%; flex-direction: row; justify-content: flex-start; }
+  .connect-channel-actions button { flex: 1 1 auto; font-size: 14px; }
+  .connect-app input, .connect-app select, .connect-app textarea { font-size: 16px; }
+}
+@media (max-width: 480px) {
+  :root { --page-gutter: 16px; --modal-gap: 12px; }
+  .entry-dialog .sheet-content, .future-content, dialog.preview-dialog,
+  dialog.dashboard-auth-dialog, .iq-modal { padding: 20px; }
+  .iq-field-grid, .qr-field-grid { grid-template-columns: minmax(0, 1fr); }
+  .iq-quick-actions { gap: 12px; }
+  .iq-quick-actions > button { flex-basis: 100%; font-size: 14px; }
+  .iq-record-list article { flex-wrap: wrap; }
+  .iq-app .section-head > div { flex-basis: auto; }
+  .iq-modal .section-head { flex-wrap: nowrap; }
+  .iq-pagination { font-size: 11px; }
+  .iq-pagination button { font-size: 12px; }
+}
+
+/* Checkbox geometry must never inherit text-input dimensions (including iOS). */
+.connect-app .connect-check {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 0;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.connect-app .connect-check input[type="checkbox"] {
+  flex: 0 0 20px;
+  width: 20px;
+  min-width: 20px;
+  max-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--teal-dark);
+}
+.connect-app fieldset { min-width: 0; padding: 12px 20px 16px; }
+.connect-app legend { padding-inline: 6px; }
+.connect-app .connect-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.connect-app .connect-fields label { min-width: 0; margin: 0; gap: 8px; }
+.connect-app .connect-fields input,
+.connect-app .connect-fields select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  min-height: 48px;
+}
+.connect-app input[type="time"] { -webkit-appearance: none; appearance: none; }
+.connect-app input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+@media (max-width: 600px) {
+  .connect-app .connect-fields { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}

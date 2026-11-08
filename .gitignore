@@ -1,0 +1,14 @@
+node_modules
+.next
+.env*
+!.env.example
+.vercel
+test-results
+playwright-report
+*.tsbuildinfo
+*.log
+.DS_Store
+coverage
+*.pem
+*.key
+*.tar.gz

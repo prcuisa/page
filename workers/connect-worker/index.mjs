@@ -1,0 +1,7 @@
+import {createClient} from '@supabase/supabase-js';
+import {open,sendProvider,renderNotice} from '../../src/features/connect/server/providers.mjs';
+const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+if(!url||!key)throw Error('Missing Supabase worker configuration');
+const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+let stop=false;process.on('SIGTERM',()=>{stop=true});process.on('SIGINT',()=>{stop=true});
+while(!stop){try{const {error}=await db.rpc('connect_tick');if(error)throw Error('database_error');for(let i=0;i<10&&!stop;i++){const {data:job,error}=await db.rpc('connect_claim');if(error)throw error;if(!job)break;let result;try{result=await sendProvider(job.channel,open(job.destination),renderNotice(job.payload),job.id,job.workspace_id);}catch{result={accepted:false,retryable:false,errorCode:'CONFIG_OR_ENCRYPTION_ERROR'};}const {error:finishError}=await db.rpc('connect_finish',{ident:job.id,lease:job.lease,accepted:result.accepted,retryable:result.retryable,provider_id:result.providerMessageId||null,error_code:result.errorCode||null,retry_after:result.retryAfter||0});if(finishError)throw finishError;}console.log(JSON.stringify({event:'connect_tick',at:new Date().toISOString()}));}catch{console.error(JSON.stringify({event:'connect_worker_error',at:new Date().toISOString()}));}if(!stop)await new Promise(r=>setTimeout(r,15000));}

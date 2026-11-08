@@ -1,0 +1,56 @@
+{
+  "name": "prcuisa-hub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test:security": "node tests/security.mjs",
+    "test:domain": "node tests/iq-domain.mjs && node tests/pdf-output.mjs",
+    "test:integration": "node tests/security.mjs && node tests/analytics.mjs && node tests/kasir.mjs && node tests/connect.mjs && node tests/connect-channels.mjs && node tests/connect-providers.mjs",
+    "check:env": "node scripts/check-production-env.mjs",
+    "verify": "npm run typecheck && npm run test:domain && npm run test:integration && npm run build",
+    "build:vercel": "npm run check:env && next build",
+    "test:ui": "playwright test tests/admin-quotation.spec.ts tests/release-smoke.spec.ts --project=desktop"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
+    "firebase": "^13.0.0",
+    "lucide-react": "1.52.0",
+    "next": "16.4.0",
+    "qr-code-styling": "1.9.2",
+    "qrcode": "^1.5.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "web-push": "3.6.7",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@fontsource/inter": "5.3.0",
+    "@fontsource/space-grotesk": "5.3.0",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.4",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "jsqr": "^1.4.0",
+    "prettier": "3.9.9",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

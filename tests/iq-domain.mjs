@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {calculate,localDate,addDays,paymentState,lineSchema} from '../src/features/invoice-quotation/domain.ts';
+const lines=[lineSchema.parse({description:'Pekerjaan',quantity:'1.5',unit_price:'100000.50',discount_rate:'10',unit:'jam'})];
+assert.deepEqual(calculate(lines,'10','11'),{subtotal:'135001',discount_total:'13500',tax_total:'13365',grand_total:'134866'});
+assert.throws(()=>lineSchema.parse({description:'X',quantity:'0',unit_price:'10'}));
+assert.throws(()=>lineSchema.parse({description:'X',quantity:'1',unit_price:'-1'}));
+assert.equal(addDays('2026-12-31',1),'2027-01-01');
+const d={id:'x',document_type:'invoice',lifecycle_status:'issued',issue_date:'2026-10-08',valid_until:'',due_date:'2026-10-10',discount_rate:'0',tax_rate:'0',notes:'',terms:'',payment_instructions:'',items:[],version:1,document_number:'INV-2026-0001',customer_snapshot:{},issuer_snapshot:{},subtotal:100000,discount_total:0,tax_total:0,grand_total:100000,payments:[{id:'p1',amount:'40000',payment_date:'2026-10-08',method:'bank',reference:'',reversed_at:null,reversal_reason:null}],events:[],created_at:'2026-10-08'};
+assert.deepEqual(paymentState(d,'2026-10-09'),{paid:'40000',due:'60000',status:'partially_paid'});
+assert.deepEqual(paymentState({...d,payments:d.payments.map(p=>({...p,reversed_at:'2026-10-09'}))},'2026-10-11'),{paid:'0',due:'100000',status:'overdue'});
+assert.match(localDate(),/^\d{4}-\d{2}-\d{2}$/);
+console.log('PASS: decimal rounding, validation, due date boundary, partial payment, reversal and overdue.');
